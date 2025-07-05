@@ -7,6 +7,7 @@ import (
 
 	"github.com/Caio26Gualberto/gobank/internal/account/models"
 	"github.com/Caio26Gualberto/gobank/internal/account/repository"
+	"github.com/Caio26Gualberto/gobank/internal/middlewares"
 	"github.com/gorilla/mux"
 )
 
@@ -18,23 +19,25 @@ func NewAccountHandler(repo repository.AccountRepository) *AccountHandler {
 	return &AccountHandler{Repo: repo}
 }
 
-func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
-	var acc models.Account
-	if err := json.NewDecoder(r.Body).Decode(&acc); err != nil {
-		http.Error(w, "Invalid payload", http.StatusBadRequest)
-		return
-	}
+func (h *AccountHandler) CreateAccount() http.HandlerFunc {
+	return middlewares.ValidateJSON(func(w http.ResponseWriter, r *http.Request, payload *models.Account) {
+		var acc models.Account
+		if err := json.NewDecoder(r.Body).Decode(&acc); err != nil {
+			http.Error(w, "Invalid payload", http.StatusBadRequest)
+			return
+		}
 
-	id, err := h.Repo.Create(&acc)
-	if err != nil {
-		http.Error(w, "Error creating account", http.StatusInternalServerError)
-		return
-	}
+		id, err := h.Repo.Create(&acc)
+		if err != nil {
+			http.Error(w, "Error creating account", http.StatusInternalServerError)
+			return
+		}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"message": "Account created successfully",
-		"id":      id,
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"message": "Account created successfully",
+			"id":      id,
+		})
 	})
 }
 
