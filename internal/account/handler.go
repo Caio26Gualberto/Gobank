@@ -23,13 +23,13 @@ func (h *AccountHandler) CreateAccount() http.HandlerFunc {
 	return middlewares.ValidateJSON(func(w http.ResponseWriter, r *http.Request, payload *models.Account) {
 		var acc models.Account
 		if err := json.NewDecoder(r.Body).Decode(&acc); err != nil {
-			http.Error(w, "Invalid payload", http.StatusBadRequest)
+			middlewares.WriteError(w, http.StatusBadRequest, "INVALID_PAYLOAD", "Some error with de informations for create acount")
 			return
 		}
 
 		id, err := h.Repo.Create(&acc)
 		if err != nil {
-			http.Error(w, "Error creating account", http.StatusInternalServerError)
+			middlewares.WriteError(w, http.StatusInternalServerError, "ERROR_CREATING_ACCOUNT", "Some error has been found for save the entity in database")
 			return
 		}
 
@@ -45,13 +45,13 @@ func (h *AccountHandler) GetAccount(w http.ResponseWriter, r *http.Request) {
 	idStr := mux.Vars(r)["id"]
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid account ID", http.StatusBadRequest)
+		middlewares.WriteError(w, http.StatusBadRequest, "INVALID_PARAMETER_ID", "Parameter Id is invalid, check with support")
 		return
 	}
 
 	account, err := h.Repo.GetById(id)
 	if err != nil {
-		http.Error(w, "Account not found", http.StatusNotFound)
+		middlewares.WriteError(w, http.StatusNotFound, "ACCOUNT_NOT_FOUND", "Some error has been found for search the entity in database")
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h *AccountHandler) GetAccount(w http.ResponseWriter, r *http.Request) {
 func (h *AccountHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	accounts, err := h.Repo.List()
 	if err != nil {
-		http.Error(w, "Accounts not found", http.StatusNotFound)
+		middlewares.WriteError(w, http.StatusNotFound, "ACCOUNTS_NOT_FOUND", "Some error has been found for search the entities in database")
 		return
 	}
 
@@ -69,23 +69,23 @@ func (h *AccountHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AccountHandler) UpdateAccount(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
+	idStr := mux.Vars(r)["id"]
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		middlewares.WriteError(w, http.StatusBadRequest, "INVALID_PARAMETER_ID", "Parameter Id is invalid, check with support")
 		return
 	}
 
 	var acc *models.Account
 	if err := json.NewDecoder(r.Body).Decode(&acc); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		middlewares.WriteError(w, http.StatusBadRequest, "INVALID_JSON", "The struct or some value in JSON is not valid")
 		return
 	}
 
 	acc.ID = id
 
 	if err := h.Repo.Update(acc); err != nil {
-		http.Error(w, "Error updating account", http.StatusInternalServerError)
+		middlewares.WriteError(w, http.StatusInternalServerError, "UPDATING_ENTITY_ERROR", "Some error in the process UPDATE in the database")
 		return
 	}
 
@@ -100,12 +100,12 @@ func (h *AccountHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		middlewares.WriteError(w, http.StatusBadRequest, "INVALID_PARAMETER_ID", "Parameter Id is invalid, check with support")
 		return
 	}
 
 	if err := h.Repo.Delete(id); err != nil {
-		http.Error(w, "Error deleting account", http.StatusInternalServerError)
+		middlewares.WriteError(w, http.StatusInternalServerError, "DELETE_ENTITY_ERROR", "Some error in the process DELETE in the database")
 		return
 	}
 

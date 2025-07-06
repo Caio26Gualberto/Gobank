@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Caio26Gualberto/gobank/internal/middlewares"
 	"github.com/Caio26Gualberto/gobank/internal/transaction/models"
 	"github.com/Caio26Gualberto/gobank/internal/transaction/repository"
 	"github.com/gorilla/mux"
@@ -21,13 +22,13 @@ func NewTransactionHandler(repo repository.TransactionRepository) *TransactionHa
 func (h *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	var t *models.Transaction
 	if err := json.NewDecoder(r.Body).Decode(&t); err != nil {
-		http.Error(w, "Invalid request", http.StatusBadRequest)
+		middlewares.WriteError(w, http.StatusBadRequest, "INVALID_PAYLOAD", "Some error with de informations for create transaction")
 		return
 	}
 
 	id, err := h.Repo.Create(t)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		middlewares.WriteError(w, http.StatusInternalServerError, "ERROR_CREATING_TRANSACTION", "Some error has been found for save the entity in database")
 		return
 	}
 
@@ -43,13 +44,13 @@ func (h *TransactionHandler) GetTransactionsByAccount(w http.ResponseWriter, r *
 
 	accountID, err := strconv.ParseInt(accountIDStr, 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid account ID", http.StatusBadRequest)
+		middlewares.WriteError(w, http.StatusBadRequest, "INVALID_PARAMETER_ID", "Parameter Id is invalid, check with support")
 		return
 	}
 
 	transactions, err := h.Repo.ListByAccountId(accountID)
 	if err != nil {
-		http.Error(w, "Failed to fetch transactions", http.StatusInternalServerError)
+		middlewares.WriteError(w, http.StatusNotFound, "TRANSACTION_NOT_FOUND", "Some error has been found for search the entities in database")
 		return
 	}
 
