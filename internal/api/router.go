@@ -17,6 +17,7 @@ func InitRouters(accountHandler *account.AccountHandler, transactionHandler *tra
 
 	r.HandleFunc("/transactions", transactionHandler.CreateTransaction).Methods("POST")
 	r.HandleFunc("/transactions/{id}", transactionHandler.GetTransactionsByAccount).Methods("GET")
+	r.HandleFunc("/transactions/{id}", transactionHandler.DeleteTransaction).Methods("DELETE")
 
 	return r
 }

@@ -56,3 +56,23 @@ func (h *TransactionHandler) GetTransactionsByAccount(w http.ResponseWriter, r *
 
 	json.NewEncoder(w).Encode(transactions)
 }
+
+func (h *TransactionHandler) DeleteTransaction(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	accountIdStr := vars["id"]
+
+	accountId, err := strconv.ParseInt(accountIdStr, 10, 64)
+	if err != nil {
+		middlewares.WriteError(w, http.StatusBadRequest, "INVALID_PARAMETER_ID", "Parameter Id is invalid, check with support")
+		return
+	}
+
+	if err := h.Repo.DeleteById(accountId); err != nil {
+		middlewares.WriteError(w, http.StatusInternalServerError, "DELETE_ENTITY_ERROR", "Some error in the process DELETE in the database")
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Account deleted successfully",
+	})
+}
