@@ -53,3 +53,15 @@ func (r *SQLTransactionRepository) ListByAccountId(accountID int64) ([]*models.T
 	}
 	return txs, nil
 }
+
+func (r *SQLTransactionRepository) DeleteById(accountId int64) error {
+	query := "DELETE Transactions WHERE Id = @id"
+	rows, err := r.DB.Query(query, sql.Named("id", accountId))
+
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	return nil
+}
